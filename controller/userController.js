@@ -131,8 +131,8 @@ export const registerUsers = async (req, res) => {
         .json({ success: false, message: "User already exists" });
 
     const newUser = await pool.query(
-      "INSERT INTO users (firstname, lastname, email, phone, address, password, confirmpassword) VALUES($1, $2, $3, $4, $5, $6, $7) Returning * ",
-      [firstname, lastname, email, phone, address, hashedPassword, null]
+      "INSERT INTO users (firstname, lastname, email, phone, address, password, image) VALUES($1, $2, $3, $4, $5, $6, $7) Returning * ",
+      [firstname, lastname, email, phone, address, hashedPassword, imageUrl]
     );
 
     if (newUser.rowCount > 0) {
