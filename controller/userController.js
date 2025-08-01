@@ -58,6 +58,11 @@ export const registerUsers = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Adress is missing" });
     }
+    if (!confirmpassword) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Confirmpasswordis missing" });
+    }
     //validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
