@@ -61,7 +61,7 @@ export const registerUsers = async (req, res) => {
     if (!confirmpassword) {
       return res
         .status(400)
-        .json({ success: false, message: "Confirmpasswordis missing" });
+        .json({ success: false, message: "Confirmpassword is missing" });
     }
     //validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
