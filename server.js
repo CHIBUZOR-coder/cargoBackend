@@ -7,6 +7,8 @@ import { userRouter } from "./Router/userRouter.js";
 const app = express();
 const port = process.env.PORT || 5000;
 
+app.use("/", userRouter)
+
 app.listen(port, () => {
   console.log(`Connected sussesfully at ${port}`);
 });
