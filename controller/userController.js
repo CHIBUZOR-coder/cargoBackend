@@ -24,6 +24,9 @@ export const registerUsers = async (req, res) => {
     confirmpassword,
     role,
   } = req.body;
+
+  console.log("reqbody:", req.body);
+
   try {
     if (!firstname) {
       return res
