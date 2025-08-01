@@ -25,6 +25,36 @@ export const registerUsers = async (req, res) => {
     role,
   } = req.body;
   try {
+    if (!firstname) {
+      return res
+        .status(400)
+        .json({ success: false, message: " Firstname is missing" });
+    }
+    if (!lastname) {
+      return res
+        .status(400)
+        .json({ success: false, message: " Lasttname is missing" });
+    }
+    if (!email) {
+      return res
+        .status(400)
+        .json({ success: false, message: " Email is missing" });
+    }
+    if (!phone) {
+      return res
+        .status(400)
+        .json({ success: false, message: " Phone is missing" });
+    }
+    if (!email) {
+      return res
+        .status(400)
+        .json({ success: false, message: " Email is missing" });
+    }
+    if (!address) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Adress is missing" });
+    }
     //validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
