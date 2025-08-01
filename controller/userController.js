@@ -114,6 +114,8 @@ export const registerUsers = async (req, res) => {
       ]
     );
   } catch (error) {
+    console.log(error.message);
+
     return res.status(400).json({ success: false, message: error.message });
   }
 };
