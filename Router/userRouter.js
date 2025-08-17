@@ -1,5 +1,6 @@
 import {
   getUsers,
+  loginuser,
   registerUsers,
   verifyEmail,
 } from "../controller/userController.js";
@@ -10,5 +11,6 @@ const userRouter = express.Router();
 userRouter.get("/getUsers", getUsers);
 userRouter.post("/registerUsers", uploads.single("image"), registerUsers);
 userRouter.post("/verifyEmail", verifyEmail);
+userRouter.post("/login", loginuser);
 
 export { userRouter };

@@ -1,9 +1,10 @@
 import pool from "../db.js"; // ✅ Triggers pool setup
 import dotenv from "dotenv";
 import bcrypt, { compare } from "bcrypt";
-import { cloudinary } from "../config/cloudinary.js"
+import { cloudinary } from "../config/cloudinary.js";
 import jwt from "jsonwebtoken";
 import { transporter } from "../config/email.js";
+import { generateToken } from "../middleware/generateToken.js";
 dotenv.config();
 
 export const getUsers = async (req, res) => {
@@ -232,8 +233,6 @@ export const verifyEmail = async (req, res) => {
     // Extract email
     const { email } = decoded;
 
-   
-
     const user = await pool.query("SELECT * FROM users WHERE email = $1", [
       email,
     ]);
@@ -242,8 +241,6 @@ export const verifyEmail = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Unable to find user" });
     }
-
- 
 
     await pool.query("UPDATE users SET verified = TRUE WHERE email = $1", [
       email,
@@ -284,5 +281,99 @@ const uploadImageToCloudinary = async (fileBuffer, resourceType) => {
   } catch (error) {
     console.error("Upload failed:", error);
     throw new Error("Image upload failed");
+  }
+};
+
+export const loginuser = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    console.log("req body:", req.body);
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields must not be empty" });
+    }
+
+    // Fetch user from database
+    const user = await pool.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
+
+    if (user.rowCount === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User does not exist" });
+    }
+
+    // Validate password
+    const validatePassword = await bcrypt.compare(password, user.password);
+    if (!validatePassword) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Password is incorrect" });
+    }
+
+    // Initialize verification token
+    let verifyEmailToken = "";
+
+    // Handle unverified users gfg
+    if (user.verified !== true) {
+      console.log("Unverified user");
+
+      verifyEmailToken = jwt.sign({ email }, process.env.EMAIL_SECRET, {
+        expiresIn: "1h",
+      });
+
+      const verificationLink = `http://localhost:5173/verifyEmail/verifyEmail?token=${verifyEmailToken}`;
+      sendVerificationEmail(email, verificationLink);
+
+      return res.status(400).json({
+        success: true,
+        message:
+          "You have not verified your email. A link to verify your accout has been sent to your emmail",
+      });
+    }
+
+    // Generate authentication token
+    const token = generateToken(user);
+    if (!token) {
+      return res.status(400).json({ success: false, message: "Invalid token" });
+    }
+
+    // Clear previous authentication cookies
+    res.clearCookie("auth_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      path: "/",
+    });
+
+    // Set new authentication cookie
+    res.cookie("auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      expires: new Date(Date.now() + 7200000), // 2 hours expiration
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    });
+
+    // Send response
+    res.status(200).json({
+      success: true,
+      message: "You are now logged in",
+      role: user.role,
+      userInfo: {
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        image: user.image,
+        id: user.id,
+        userName: user.userName,
+        subscription: user.subscription,
+      },
+    });
+  } catch (error) {
+    console.error({ message: error.message });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
