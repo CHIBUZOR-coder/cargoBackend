@@ -26,6 +26,7 @@ export const registerUsers = async (req, res) => {
   } = req.body;
 
   console.log("reqbody:", req.body);
+  console.log("file:", req.file);
 
   try {
     if (!firstname) {
