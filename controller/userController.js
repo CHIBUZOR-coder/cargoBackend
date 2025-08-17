@@ -102,7 +102,7 @@ export const registerUsers = async (req, res) => {
       }
       try {
         // Use async/await to handle the image upload process
-        imageUrl = await uploadImageToCloudinary(req.file.buffer);
+        imageUrl = await uploadImageToCloudinary(req.file);
 
         // After the upload completes, log the image URL
         console.log("Image URL after upload:", imageUrl);
