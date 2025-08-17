@@ -212,62 +212,55 @@ const sendVerificationEmail = async (email, verificationLink, message) => {
   }
 };
 
-// export const verifyEmail = async (req, res) => {
-//   const { token } = req.body;
-//   console.log("req.body:", req.body);
+export const verifyEmail = async (req, res) => {
+  const { token } = req.body;
+  console.log("req.body:", req.body);
 
-//   if (!token) {
-//     return res.status(400).json({
-//       success: false,
-//       message: "Token and email are required",
-//     });
-//   }
+  if (!token) {
+    return res.status(400).json({
+      success: false,
+      message: "Token and email are required",
+    });
+  }
 
-//   try {
-//     const decoded = jwt.verify(token, process.env.EMAIL_SECRET); // Use your JWT secret key
+  try {
+    const decoded = jwt.verify(token, process.env.EMAIL_SECRET); // Use your JWT secret key
 
-//     if (!decoded) {
-//       return res.status(401).json({ success: false, message: "Invalid token" });
-//     }
-//     // Extract email
-//     const { email } = decoded;
+    if (!decoded) {
+      return res.status(401).json({ success: false, message: "Invalid token" });
+    }
+    // Extract email
+    const { email } = decoded;
 
-//     // const user = await prisma.user.findUnique({
-//     //   where: { email },
-//     //   select: { id: true },
-//     // });
+   
 
-//     const user = await client.query("SELECT * FROM userr WHERE email = $1", [
-//       email,
-//     ]);
-//     if (!user.rowCount === 0) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "Unable to find user" });
-//     }
+    const user = await client.query("SELECT * FROM userr WHERE email = $1", [
+      email,
+    ]);
+    if (!user.rowCount === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Unable to find user" });
+    }
 
-//     // Update user in database (set resetToken to true or handle verification logic)
-//     // await prisma.user.update({
-//     //   where: { id: user.id },
-//     //   data: { status: true },
-//     // });
+ 
 
-//     await client.query("UPDATE userr SET verified = TRUE WHERE email = $1", [
-//       email,
-//     ]);
-//     // If verification is successful, send a success response
-//     return res.status(200).json({
-//       success: true,
-//       message: "Email verified successfully",
-//       data: decoded, // Optionally send decoded data
-//     });
-//   } catch (error) {
-//     console.error("Email verification error:", error.message);
-//     return res
-//       .status(500)
-//       .json({ success: false, message: "Email verification failed" });
-//   }
-// };
+    await client.query("UPDATE users SET verified = TRUE WHERE email = $1", [
+      email,
+    ]);
+    // If verification is successful, send a success response
+    return res.status(200).json({
+      success: true,
+      message: "Email verified successfully",
+      data: decoded, // Optionally send decoded data
+    });
+  } catch (error) {
+    console.error("Email verification error:", error.message);
+    return res
+      .status(500)
+      .json({ success: false, message: "Email verification failed" });
+  }
+};
 
 const uploadImageToCloudinary = async (fileBuffer, resourceType) => {
   try {
