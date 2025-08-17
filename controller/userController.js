@@ -234,7 +234,7 @@ export const verifyEmail = async (req, res) => {
 
    
 
-    const user = await client.query("SELECT * FROM userr WHERE email = $1", [
+    const user = await pool.query("SELECT * FROM userr WHERE email = $1", [
       email,
     ]);
     if (!user.rowCount === 0) {
