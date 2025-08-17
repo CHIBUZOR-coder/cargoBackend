@@ -245,7 +245,7 @@ export const verifyEmail = async (req, res) => {
 
  
 
-    await client.query("UPDATE users SET verified = TRUE WHERE email = $1", [
+    await pool.query("UPDATE users SET verified = TRUE WHERE email = $1", [
       email,
     ]);
     // If verification is successful, send a success response
@@ -267,7 +267,7 @@ const uploadImageToCloudinary = async (fileBuffer, resourceType) => {
     const uploadPromise = new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
-          { resource_type: resourceType, folder: "CargoMerge" },
+          { resource_type: resourceType, folder: "userImages" },
           (error, result) => {
             if (error) {
               return reject(error);
