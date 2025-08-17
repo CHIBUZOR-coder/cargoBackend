@@ -1,7 +1,9 @@
 import pool from "../db.js"; // ✅ Triggers pool setup
 import dotenv from "dotenv";
 import bcrypt, { compare } from "bcrypt";
-import { cloudinary } from "../config/cloudinary.js";
+import { cloudinary } from "../config/cloudinary.js"
+import jwt from "jsonwebtoken";
+import { transporter } from "../config/email.js";
 dotenv.config();
 
 export const getUsers = async (req, res) => {
@@ -124,6 +126,11 @@ export const registerUsers = async (req, res) => {
       "SELECT * FROM users WHERE email = $1",
       [email]
     );
+
+    // Generate email verification token
+    const verifyEmailToken = jwt.sign({ email }, process.env.EMAIL_SECRET, {
+      expiresIn: "1h",
+    });
 
     if (existingUser.rowCount > 0)
       return res
