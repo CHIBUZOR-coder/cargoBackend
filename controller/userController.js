@@ -102,7 +102,7 @@ export const registerUsers = async (req, res) => {
       }
       try {
         // Use async/await to handle the image upload process
-        imageUrl = await uploadImageToCloudinary(req.file);
+        imageUrl = await uploadImageToCloudinary(req.file.buffer);
 
         // After the upload completes, log the image URL
         console.log("Image URL after upload:", imageUrl);
@@ -260,12 +260,12 @@ const sendVerificationEmail = async (email, verificationLink, message) => {
 //   }
 // };
 
-const uploadImageToCloudinary = async (fileBuffer) => {
+const uploadImageToCloudinary = async (fileBuffer, resourceType) => {
   try {
     const uploadPromise = new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
-          { resource_type: "image", folder: "CargoMerge" },
+          { resource_type: resourceType, folder: "CargoMerge" },
           (error, result) => {
             if (error) {
               return reject(error);
