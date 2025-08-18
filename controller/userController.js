@@ -204,6 +204,8 @@ const sendVerificationEmail = async (email, verificationLink, message) => {
 
 
 
+    
+
 
 
   </div>

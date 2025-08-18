@@ -28,7 +28,7 @@ const port = process.env.PORT || 5000;
 // parse cookies
 app.use(cookieParser());
 const allowedOrigins = [
-  "https://cargo-merge.vercel.app/", // Deployed React frontend
+  "https://cargo-merge.vercel.app", // Deployed React frontend
   "http://localhost:5173", // Local React dev
 ];
 app.use(
