@@ -7,11 +7,14 @@ const SECRET_KEY = process.env.JWT_SECRET_KEY;
 
 function generateToken(user) {
   try {
-    const { id, role, email, name, phone, image, password, userName } = user;
+    const { id, role, email, firstname, lastname, phone, image, password, userName } = user;
     console.log("user", user);
     let expp;
-    if (!name) {
+    if (!firstname) {
       console.log("Name is required");
+    }
+    if (!lastname) {
+      console.log("Last is required");
     }
     if (!role) {
       console.log("role is required");
@@ -34,7 +37,8 @@ function generateToken(user) {
       id,
       role,
       email,
-      name,
+      firstname,
+      lastname,
       phone,
       image,
       userName,
