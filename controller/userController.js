@@ -296,16 +296,18 @@ export const loginuser = async (req, res) => {
     }
 
     // Fetch user from database
-    const user = await pool.query("SELECT * FROM users WHERE email = $1", [
-      email,
-    ]);
+  const result = await pool.query("SELECT * FROM users WHERE email = $1", [
+    email,
+  ]);
+  if (result.rowCount === 0) {
+    return res
+      .status(400)
+      .json({ success: false, message: "User does not exist" });
+  }
+  const user = result.rows[0];
 
-    if (user.rowCount === 0) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User does not exist" });
-    }
 
+ 
     // Validate password
     const validatePassword = await bcrypt.compare(password, user.password);
     if (!validatePassword) {
@@ -363,12 +365,14 @@ export const loginuser = async (req, res) => {
       message: "You are now logged in",
       role: user.role,
       userInfo: {
-        name: user.name,
+     
         email: user.email,
         phone: user.phone,
         image: user.image,
         id: user.id,
-        userName: user.userName,
+        role:user.role,
+        firstname: user.firstname,
+        lasttname: user.lastname,
         subscription: user.subscription,
       },
     });
