@@ -4,7 +4,12 @@ import bcrypt, { compare } from "bcrypt";
 import { cloudinary } from "../config/cloudinary.js";
 import jwt from "jsonwebtoken";
 import { transporter } from "../config/email.js";
-import { generateToken } from "../middleware/generateToken.js";
+import {
+  generateToken,
+  ResetPasswordToken,
+} from "../middlewares/generateToken.js";
+
+
 dotenv.config();
 
 export const getUsers = async (req, res) => {

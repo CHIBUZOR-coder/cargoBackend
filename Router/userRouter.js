@@ -5,7 +5,7 @@ import {
   verifyEmail,
 } from "../controller/userController.js";
 import express from "express";
-import uploads from "../middleware/uploads.js";
+import uploads from "../middlewares/uploads.js";
 const userRouter = express.Router();
 
 userRouter.get("/getUsers", getUsers);

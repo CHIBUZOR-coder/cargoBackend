@@ -1,5 +1,5 @@
-const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv");
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 
 dotenv.config();
 const SECRET_KEY = process.env.JWT_SECRET_KEY;
@@ -83,4 +83,4 @@ function ResetPasswordToken(user) {
   }
 }
 
-module.exports = { generateToken, ResetPasswordToken };
+export { generateToken, ResetPasswordToken };
