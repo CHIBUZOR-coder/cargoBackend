@@ -179,7 +179,7 @@ const sendVerificationEmail = async (email, verificationLink, message) => {
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="height: 300px;">
       <tr>
       <td style="text-align: center; padding: 20px;">
-          <img src="https://res.cloudinary.com/dtjgj2odu/image/upload/v1734469383/ThiaLogo_nop3yd.png" 
+          <img src="https://res.cloudinary.com/de3iibogu/image/upload/v1755464837/logo-modified_ahi0l7.png" 
           alt="Thia's Apparel Logo" width="120" height="120" 
           style="max-width: 100%; display: block; margin: auto; border-radius: 50%;">
         </td>
@@ -194,9 +194,9 @@ const sendVerificationEmail = async (email, verificationLink, message) => {
       ${message}</p>
 
       <a href="${verificationLink}" style="display: inline-block; padding: 12px 24px; background: #0B0F29; 
-      border: 5px solid #0B0F29; color: #F20000; text-decoration: none; font-weight: bold; border-radius: 5px;"
+      border: 5px solid #0B0F29; color: #eadd8e; text-decoration: none; font-weight: bold; border-radius: 5px;"
       onmouseover="this.style.background='#FFF'; this.style.color='#0B0F29';"
-      onmouseout="this.style.background='#0B0F29'; this.style.color='#F20000';">Verify Account</a>
+      onmouseout="this.style.background='#0B0F29'; this.style.color='#eadd8e';">Verify Account</a>
       
       <p style="font-size: 16px;">If you did not request this, please ignore this email.</p>
     </div>
