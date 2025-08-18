@@ -148,7 +148,7 @@ export const registerUsers = async (req, res) => {
       [firstname, lastname, email, phone, address, hashedPassword, imageUrl]
     );
 
-    const verificationLink = `http://localhost:5173/verifyEmail?token=${verifyEmailToken}`;
+    const verificationLink = `https://cargo-merge.vercel.app/verifyEmail?token=${verifyEmailToken}`;
 
     const message = "Click the link below to verify your account";
     sendVerificationEmail(email, verificationLink, message);
