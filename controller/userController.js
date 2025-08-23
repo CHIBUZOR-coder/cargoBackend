@@ -156,7 +156,10 @@ export const registerUsers = async (req, res) => {
     if (newUser.rowCount > 0) {
       return res
         .status(201)
-        .json({ success: true, message: "User Registered Sucessfully !" });
+        .json({
+          success: true,
+          message: `User registered successfully. Please check ${email} for verification.`,
+        });
     }
   } catch (error) {
     console.log(error.message);
