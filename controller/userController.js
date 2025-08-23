@@ -153,6 +153,7 @@ export const registerUsers = async (req, res) => {
     const message = "Click the link below to verify your account";
     sendVerificationEmail(email, verificationLink, message);
 
+    
     if (newUser.rowCount > 0) {
       return res
         .status(201)
