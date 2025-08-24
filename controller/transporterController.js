@@ -27,7 +27,7 @@ export const registerTransporter = async (req, res) => {
     description,
     port_location,
     vehicle_number,
-    license_number,
+
     email,
     phone,
     password,
@@ -43,7 +43,7 @@ export const registerTransporter = async (req, res) => {
         .status(400)
         .json({ success: false, message: " Firstname is missing" });
     }
-    
+
     if (!email) {
       return res
         .status(400)
@@ -59,7 +59,7 @@ export const registerTransporter = async (req, res) => {
         .status(400)
         .json({ success: false, message: " Email is missing" });
     }
-   if (!port_location) {
+    if (!port_location) {
       return res
         .status(400)
         .json({ success: false, message: "Port location is missing" });
@@ -150,10 +150,36 @@ export const registerTransporter = async (req, res) => {
         .status(400)
         .json({ success: false, message: "User already exists" });
 
-    const newUser = await pool.query(
-      "INSERT INTO users (name,  port_location, email, phone, description, password, image, vehicle_number, license_number) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) Returning * ",
-      [name, port_location, email, phone, description, hashedPassword, imageUrl, vehicle_number, license_number]
-    );
+    if (vehicle_number) {
+      // If vehicle_number is provided, include it in the query
+      const newUser = await pool.query(
+        "INSERT INTO users (name,  port_location, email, phone, description, password, image, vehicle_number) VALUES($1, $2, $3, $4, $5, $6, $7, $8) Returning * ",
+        [
+          name,
+          port_location,
+          email,
+          phone,
+          description,
+          hashedPassword,
+          imageUrl,
+          vehicle_number,
+        ]
+      );
+    } else {
+      // If vehicle_number is not provided, exclude it from the query
+      const newUser = await pool.query(
+        "INSERT INTO users (name,  port_location, email, phone, description, password, image) VALUES($1, $2, $3, $4, $5, $6, $7) Returning * ",
+        [
+          name,
+          port_location,
+          email,
+          phone,
+          description,
+          hashedPassword,
+          imageUrl,
+        ]
+      );
+    }
 
     const verificationLink = `https://cargo-merge.vercel.app/verifyEmail?token=${verifyEmailToken}`;
 
