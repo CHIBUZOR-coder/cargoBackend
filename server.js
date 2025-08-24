@@ -21,6 +21,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { userRouter } from "./Router/userRouter.js";
 import cookieParser from "cookie-parser";
+import { transporterRouter } from "./Router/transporterRouter.js";
 dotenv.config();
 
 const app = express();
@@ -55,6 +56,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // But multer will handle `multipart/form-data` requests in routes
 app.use("/", userRouter);
+app.use("/", transporterRouter);
 
 app.listen(port, () => {
   console.log(`Connected successfully at ${port}`);

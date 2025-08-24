@@ -9,12 +9,11 @@ import {
   ResetPasswordToken,
 } from "../middlewares/generateToken.js";
 
-
 dotenv.config();
 
-export const getUsers = async (req, res) => {
+export const getTransporter = async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM users");
+    const result = await pool.query("SELECT * FROM transporters");
     res.json(result.rows);
   } catch (error) {
     console.error("DB error:", error.message);
@@ -22,13 +21,15 @@ export const getUsers = async (req, res) => {
   }
 };
 
-export const registerUsers = async (req, res) => {
+export const registerTransporter = async (req, res) => {
   const {
-    firstname,
-    lastname,
+    name,
+    description,
+    port_location,
+    vehicle_number,
+    license_number,
     email,
     phone,
-    address,
     password,
     confirmpassword,
   } = req.body;
@@ -37,16 +38,12 @@ export const registerUsers = async (req, res) => {
   console.log("file:", req.file);
 
   try {
-    if (!firstname) {
+    if (!name) {
       return res
         .status(400)
         .json({ success: false, message: " Firstname is missing" });
     }
-    if (!lastname) {
-      return res
-        .status(400)
-        .json({ success: false, message: " Lasttname is missing" });
-    }
+    
     if (!email) {
       return res
         .status(400)
@@ -62,11 +59,21 @@ export const registerUsers = async (req, res) => {
         .status(400)
         .json({ success: false, message: " Email is missing" });
     }
-    if (!address) {
+   if (!port_location) {
       return res
         .status(400)
-        .json({ success: false, message: "Adress is missing" });
+        .json({ success: false, message: "Port location is missing" });
     }
+    // if (!vehicle_number) {
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, message: "Vehicle number is missing" });
+    // }
+    // if (!license_number) {
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, message: "License number is missing" });
+    // }
     if (!confirmpassword) {
       return res
         .status(400)
@@ -144,8 +151,8 @@ export const registerUsers = async (req, res) => {
         .json({ success: false, message: "User already exists" });
 
     const newUser = await pool.query(
-      "INSERT INTO users (firstname, lastname, email, phone, address, password, image) VALUES($1, $2, $3, $4, $5, $6, $7) Returning * ",
-      [firstname, lastname, email, phone, address, hashedPassword, imageUrl]
+      "INSERT INTO users (name,  port_location, email, phone, description, password, image, vehicle_number, license_number) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) Returning * ",
+      [name, port_location, email, phone, description, hashedPassword, imageUrl, vehicle_number, license_number]
     );
 
     const verificationLink = `https://cargo-merge.vercel.app/verifyEmail?token=${verifyEmailToken}`;
@@ -153,14 +160,11 @@ export const registerUsers = async (req, res) => {
     const message = "Click the link below to verify your account";
     sendVerificationEmail(email, verificationLink, message);
 
-
     if (newUser.rowCount > 0) {
-      return res
-        .status(201)
-        .json({
-          success: true,
-          message: `User registered successfully. Please check ${email} for verification.`,
-        });
+      return res.status(201).json({
+        success: true,
+        message: `User registered successfully. Please check ${email} for verification.`,
+      });
     }
   } catch (error) {
     console.log(error.message);
@@ -275,7 +279,7 @@ const uploadImageToCloudinary = async (fileBuffer, resourceType) => {
     const uploadPromise = new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
-          { resource_type: resourceType, folder: "userImages" },
+          { resource_type: resourceType, folder: "transportersImages" },
           (error, result) => {
             if (error) {
               return reject(error);
@@ -307,18 +311,16 @@ export const loginuser = async (req, res) => {
     }
 
     // Fetch user from database
-  const result = await pool.query("SELECT * FROM users WHERE email = $1", [
-    email,
-  ]);
-  if (result.rowCount === 0) {
-    return res
-      .status(400)
-      .json({ success: false, message: "User does not exist" });
-  }
-  const user = result.rows[0];
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
+    if (result.rowCount === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User does not exist" });
+    }
+    const user = result.rows[0];
 
-
- 
     // Validate password
     const validatePassword = await bcrypt.compare(password, user.password);
     if (!validatePassword) {
@@ -376,12 +378,11 @@ export const loginuser = async (req, res) => {
       message: "You are now logged in",
       role: user.role,
       userInfo: {
-     
         email: user.email,
         phone: user.phone,
         image: user.image,
         id: user.id,
-        role:user.role,
+        role: user.role,
         firstname: user.firstname,
         lasttname: user.lastname,
         subscription: user.subscription,
@@ -392,8 +393,3 @@ export const loginuser = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
-
-
-
-

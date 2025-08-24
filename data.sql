@@ -3,6 +3,7 @@ CREATE TYPE transporter_type_enum AS ENUM (
     'inter_transporter',
     'intra_transporter'
 );
+CREATE TYPE transporter_category_enum AS ENUM ('company', 'individual');
 -- Drop enum if needed (only do this if no table depends on it)
 -- DROP TYPE IF EXISTS merge_status_enum;
 CREATE TYPE merge_status_enum AS ENUM (
@@ -34,6 +35,9 @@ CREATE TABLE transporters (
     image TEXT DEFAULT NULL,
     -- Required transporter image
     contact_email VARCHAR(100),
+    transporter_category transporter_category_enum NOT NULL DEFAULT 'individual',
+    license_number TEXT DEFAULT NULL,
+    vehicle_number TEXT DEFAULT NULL,
     contact_phone VARCHAR(20),
     port_location TEXT,
     transporter_type transporter_type_enum DEFAULT 'continental',
@@ -69,7 +73,6 @@ CREATE TABLE merges (
         merge_receipt_url TEXT DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
 CREATE TABLE merge_participants (
     id SERIAL PRIMARY KEY,
     merge_id INT REFERENCES merges(id) ON DELETE CASCADE,
@@ -96,7 +99,6 @@ CREATE TABLE shipping_schedule (
     cargo_rules TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
 CREATE TABLE merge_invitations (
     id SERIAL PRIMARY KEY,
     merge_id INT REFERENCES merges(id) ON DELETE CASCADE,
