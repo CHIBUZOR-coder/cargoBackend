@@ -148,11 +148,11 @@ export const registerTransporter = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, message: "User already exists" });
-
+    let newUser;
     if (vehicle_number) {
       // If vehicle_number is provided, include it in the query
-      const newUser = await pool.query(
-        "INSERT INTO users (name,  port_location, email, phone, description, password, image, vehicle_number) VALUES($1, $2, $3, $4, $5, $6, $7, $8) Returning * ",
+      newUser = await pool.query(
+        "INSERT INTO transporters (name,  port_location, email, phone, description, password, image, vehicle_number) VALUES($1, $2, $3, $4, $5, $6, $7, $8) Returning * ",
         [
           name,
           port_location,
@@ -166,8 +166,8 @@ export const registerTransporter = async (req, res) => {
       );
     } else {
       // If vehicle_number is not provided, exclude it from the query
-      const newUser = await pool.query(
-        "INSERT INTO users (name,  port_location, email, phone, description, password, image) VALUES($1, $2, $3, $4, $5, $6, $7) Returning * ",
+      newUser = await pool.query(
+        "INSERT INTO transporters (name,  port_location, email, phone, description, password, image) VALUES($1, $2, $3, $4, $5, $6, $7) Returning * ",
         [
           name,
           port_location,
