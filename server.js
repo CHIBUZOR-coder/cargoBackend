@@ -30,7 +30,7 @@ const port = process.env.PORT || 5000;
 app.use(cookieParser());
 const allowedOrigins = [
   "https://cargo-merge.vercel.app", // Deployed React frontend
-  "http://localhost:5173", // Local React dev
+  "http://localhost:5174", // Local React dev
 ];
 app.use(
   cors({
