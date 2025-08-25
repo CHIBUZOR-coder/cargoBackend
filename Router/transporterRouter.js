@@ -4,9 +4,9 @@ import uploads from "../middlewares/uploads.js";
 import { getTransporter, registerTransporter, verifyEmail } from "../controller/transporterController.js";
 const transporterRouter = express.Router();
 
-userRouter.get("/getTransporter", getTransporter);
-userRouter.post("/registerTransporters", uploads.single("image"), registerTransporter);
-userRouter.post("/verifyEmail", verifyEmail);
-userRouter.post("/login", loginuser);
+transporterRouter.get("/getTransporter", getTransporter);
+transporterRouter.post("/registerTransporters", uploads.single("image"), registerTransporter);
+transporterRouter.post("/verifyEmail", verifyEmail);
+transporterRouter.post("/login", loginuser);
 
 export { transporterRouter };
