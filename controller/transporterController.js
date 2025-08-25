@@ -27,7 +27,6 @@ export const registerTransporter = async (req, res) => {
     description,
     port_location,
     vehicle_number,
-
     email,
     phone,
     password,
