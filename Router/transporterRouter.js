@@ -7,6 +7,5 @@ const transporterRouter = express.Router();
 transporterRouter.get("/getTransporter", getTransporter);
 transporterRouter.post("/registerTransporters", uploads.single("image"), registerTransporter);
 transporterRouter.post("/verifyEmail", verifyEmail);
-transporterRouter.post("/login", loginuser);
 
 export { transporterRouter };
