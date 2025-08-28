@@ -3,6 +3,12 @@ CREATE TYPE transporter_type_enum AS ENUM (
     'inter_transporter',
     'intra_transporter'
 );
+CREATE TYPE truck_status_enum AS ENUM (
+    'available',
+    'in_transit',
+    'delivered',
+    'maintenance'
+);
 CREATE TYPE transporter_category_enum AS ENUM ('company', 'individual');
 -- Drop enum if needed (only do this if no table depends on it)
 -- DROP TYPE IF EXISTS merge_status_enum;
@@ -117,3 +123,45 @@ CREATE TABLE merge_invitations (
 );
 -- ALTER TABLE users DROP COLUMN created_at,
 --     ADD COLUMN created_at TIMESTAMPTZ DEFAULT now();
+
+
+
+CREATE TABLE trucks (
+    id SERIAL PRIMARY KEY,
+    transporter_id INT REFERENCES transporters(id) ON DELETE CASCADE,
+    plate_number TEXT UNIQUE NOT NULL,
+    capacity NUMERIC(10, 2) NOT NULL,
+    -- e.g., in tons
+    model TEXT,
+    status truck_status_enum DEFAULT 'available',
+    -- available, busy, maintenance
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE ships (
+    id SERIAL PRIMARY KEY,
+    transporter_id INT REFERENCES transporters(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    capacity NUMERIC(10, 2) NOT NULL,
+    -- e.g., in tons
+    registration_number TEXT UNIQUE NOT NULL,
+    status truck_status_enum DEFAULT 'available',
+    -- available, busy, maintenance
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE shipping_schedule (
+    id SERIAL PRIMARY KEY,
+    transporter_id INT REFERENCES transporters(id) ON DELETE CASCADE,
+    truck_id INT REFERENCES trucks(id) ON DELETE
+    SET NULL,
+        ship_id INT REFERENCES ships(id) ON DELETE
+    SET NULL,
+        port TEXT NOT NULL,
+        departure_date TIMESTAMP NOT NULL,
+        arrival_date TIMESTAMP NOT NULL,
+        cargo_rules TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
