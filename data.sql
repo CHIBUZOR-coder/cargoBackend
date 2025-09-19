@@ -123,9 +123,6 @@ CREATE TABLE merge_invitations (
 );
 -- ALTER TABLE users DROP COLUMN created_at,
 --     ADD COLUMN created_at TIMESTAMPTZ DEFAULT now();
-
-
-
 CREATE TABLE trucks (
     id SERIAL PRIMARY KEY,
     transporter_id INT REFERENCES transporters(id) ON DELETE CASCADE,
@@ -137,8 +134,6 @@ CREATE TABLE trucks (
     -- available, busy, maintenance
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-
 CREATE TABLE ships (
     id SERIAL PRIMARY KEY,
     transporter_id INT REFERENCES transporters(id) ON DELETE CASCADE,
@@ -150,8 +145,6 @@ CREATE TABLE ships (
     -- available, busy, maintenance
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-
 CREATE TABLE shipping_schedule (
     id SERIAL PRIMARY KEY,
     transporter_id INT REFERENCES transporters(id) ON DELETE CASCADE,
@@ -165,3 +158,10 @@ CREATE TABLE shipping_schedule (
         cargo_rules TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE IF NOT EXISTS otp (
+    id SERIAL PRIMARY KEY,
+    email TEXT UNIQUE,
+    otp TEXT NOT NULL,
+    expiresAt TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+)

@@ -4,11 +4,12 @@ import bcrypt, { compare } from "bcrypt";
 import { cloudinary } from "../config/cloudinary.js";
 import jwt from "jsonwebtoken";
 import { transporter } from "../config/email.js";
+import crypto from "crypto";
 import {
   generateToken,
   ResetPasswordToken,
 } from "../middlewares/generateToken.js";
-
+import { saveOtp } from "../config/otp.js";
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ export const registerUsers = async (req, res) => {
     address,
     password,
     confirmpassword,
+    platform,
   } = req.body;
 
   console.log("reqbody:", req.body);
@@ -148,24 +150,94 @@ export const registerUsers = async (req, res) => {
       [firstname, lastname, email, phone, address, hashedPassword, imageUrl]
     );
 
-    const verificationLink = `https://cargo-merge.vercel.app/verifyEmail?token=${verifyEmailToken}`;
+    if (newUser.rowCount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: `User registration failed. Please try again!`,
+      });
+    }
 
-    const message = "Click the link below to verify your account";
-    sendVerificationEmail(email, verificationLink, message);
+    // Logic split: Web vs Mobile
+    if (platform === "mobile") {
+      // Generate OTP
+      const otp = crypto.randomInt(100000, 999999).toString(); // 6-digit OTP
+      // const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // valid for 10 minutes
 
+      // Send OTP email
+      await sendOtpEmail(email, otp);
+      saveOtp(email, otp);
+      return res.status(201).json({
+        success: true,
+        message: `User registered successfully. An OTP has been sent to ${email} for verification.`,
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          name: newUser.name,
+          userName: newUser.userName,
+        },
+      });
+    } else {
+      // Web flow: Send email verification link
+      const verifyEmailToken = jwt.sign({ email }, process.env.EMAIL_SECRET, {
+        expiresIn: "1h",
+      });
 
-    if (newUser.rowCount > 0) {
-      return res
-        .status(201)
-        .json({
-          success: true,
-          message: `User registered successfully. Please check ${email} for verification.`,
-        });
+      const message = "Click the link below to verify your account";
+
+      const verificationLink = `https://cargo-merge.vercel.app/verifyEmail?token=${verifyEmailToken}`;
+      // await sendVerificationEmail(email, verificationLink);
+      await sendVerificationEmail(email, verificationLink, message);
+
+      return res.status(201).json({
+        success: true,
+        message: `User registered successfully. Please check ${email} for verification link.`,
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          name: newUser.name,
+          userName: newUser.userName,
+        },
+      });
     }
   } catch (error) {
     console.log(error.message);
 
     return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+//send otp
+const sendOtpEmail = async (email, otp) => {
+  const mailOptions = {
+    from: {
+      name: "CargoMerge",
+      address: process.env.EMAIL_HOST_USER,
+    },
+    to: email,
+    subject: "Email Verification",
+    html: `
+      <div style="width: 100%; height:600px; max-width: 600px; margin: auto; text-align: center;
+      font-family: Arial, sans-serif; border-radius: 10px; overflow: hidden;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="height: 300px;">
+          <tr>
+            <td style="background: url('https://res.cloudinary.com/dtjgj2odu/image/upload/v1739154208/logo_c6zxpk.png') 
+            no-repeat center center; background-size: cover;"></td>
+          </tr>
+        </table>
+        <div style="padding: 20px; color:  #0B0F29;">
+          <p style="font-size: 16px;">Click the button below to verify your email. This link is valid for 1 hour.</p>
+          <p style="font-size: 16px;">Your OTP is: <strong>${otp}</strong></p>
+          <p style="margin-top: 20px; font-size: 14px; color:  #0B0F29;">If you did not request this, please ignore this email.</p>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Verification email sent to ${email}`);
+  } catch (error) {
+    console.error(`Error sending email to ${email}:`, error);
   }
 };
 
@@ -224,51 +296,125 @@ const sendVerificationEmail = async (email, verificationLink, message) => {
   }
 };
 
-export const verifyEmail = async (req, res) => {
-  const { token } = req.body;
-  console.log("req.body:", req.body);
+exports.verifyEmail = async (req, res) => {
+  const { token, otp, email } = req.body;
 
-  if (!token) {
+  if (!token && (!otp || !email)) {
     return res.status(400).json({
       success: false,
-      message: "Token and email are required",
+      message: "Provide either a token or email with OTP.",
     });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.EMAIL_SECRET); // Use your JWT secret key
+    let verifiedEmail;
 
-    if (!decoded) {
-      return res.status(401).json({ success: false, message: "Invalid token" });
+    if (token) {
+      // --- Web token verification ---
+      const decoded = jwt.verify(token, process.env.EMAIL_SECRET);
+      if (!decoded?.email) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid or expired token",
+        });
+      }
+      verifiedEmail = decoded.email;
+    } else if (otp && email) {
+      // --- Mobile OTP verification ---
+      const isValid = verifyOtp(email, otp);
+      if (!isValid) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid or expired OTP",
+        });
+      }
+      verifiedEmail = email;
     }
-    // Extract email
-    const { email } = decoded;
 
-    const user = await pool.query("SELECT * FROM users WHERE email = $1", [
-      email,
-    ]);
-    if (!user.rowCount === 0) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Unable to find user" });
+    // Look up user
+    const user = await prisma.user.findUnique({
+      where: { email: verifiedEmail },
+      select: { id: true, status: true },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Unable to find user",
+      });
     }
 
-    await pool.query("UPDATE users SET verified = TRUE WHERE email = $1", [
-      email,
-    ]);
-    // If verification is successful, send a success response
+    if (user.status === true) {
+      return res.status(200).json({
+        success: true,
+        message: "Email already verified",
+      });
+    }
+
+    // Update user status to verified
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { status: true },
+    });
+
     return res.status(200).json({
       success: true,
       message: "Email verified successfully",
-      data: decoded, // Optionally send decoded data
     });
   } catch (error) {
     console.error("Email verification error:", error.message);
-    return res
-      .status(500)
-      .json({ success: false, message: "Email verification failed" });
+    return res.status(500).json({
+      success: false,
+      message: "Email verification failed",
+    });
   }
 };
+
+// export const verifyEmail = async (req, res) => {
+//   const { token } = req.body;
+//   console.log("req.body:", req.body);
+
+//   if (!token) {
+//     return res.status(400).json({
+//       success: false,
+//       message: "Token and email are required",
+//     });
+//   }
+
+//   try {
+//     const decoded = jwt.verify(token, process.env.EMAIL_SECRET); // Use your JWT secret key
+
+//     if (!decoded) {
+//       return res.status(401).json({ success: false, message: "Invalid token" });
+//     }
+//     // Extract email
+//     const { email } = decoded;
+
+//     const user = await pool.query("SELECT * FROM users WHERE email = $1", [
+//       email,
+//     ]);
+//     if (!user.rowCount === 0) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "Unable to find user" });
+//     }
+
+//     await pool.query("UPDATE users SET verified = TRUE WHERE email = $1", [
+//       email,
+//     ]);
+//     // If verification is successful, send a success response
+//     return res.status(200).json({
+//       success: true,
+//       message: "Email verified successfully",
+//       data: decoded, // Optionally send decoded data
+//     });
+//   } catch (error) {
+//     console.error("Email verification error:", error.message);
+//     return res
+//       .status(500)
+//       .json({ success: false, message: "Email verification failed" });
+//   }
+// };
 
 const uploadImageToCloudinary = async (fileBuffer, resourceType) => {
   try {
@@ -307,18 +453,16 @@ export const loginuser = async (req, res) => {
     }
 
     // Fetch user from database
-  const result = await pool.query("SELECT * FROM users WHERE email = $1", [
-    email,
-  ]);
-  if (result.rowCount === 0) {
-    return res
-      .status(400)
-      .json({ success: false, message: "User does not exist" });
-  }
-  const user = result.rows[0];
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
+    if (result.rowCount === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User does not exist" });
+    }
+    const user = result.rows[0];
 
-
- 
     // Validate password
     const validatePassword = await bcrypt.compare(password, user.password);
     if (!validatePassword) {
@@ -376,12 +520,11 @@ export const loginuser = async (req, res) => {
       message: "You are now logged in",
       role: user.role,
       userInfo: {
-     
         email: user.email,
         phone: user.phone,
         image: user.image,
         id: user.id,
-        role:user.role,
+        role: user.role,
         firstname: user.firstname,
         lasttname: user.lastname,
         subscription: user.subscription,
@@ -392,8 +535,3 @@ export const loginuser = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
-
-
-
-
