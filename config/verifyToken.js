@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-const verifyToken = (req, res, next) => {
+export const verifyToken = (req, res, next) => {
   console.log(req.cookies); // Add this line to debug
   const token = req.cookies.auth_token;
 
@@ -19,7 +19,7 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-const verifySubscription = async (req, res, next) => {
+export const verifySubscription = async (req, res, next) => {
   try {
     const token = req.cookies.auth_token;
     if (!token) {
@@ -43,7 +43,7 @@ const verifySubscription = async (req, res, next) => {
   }
 };
 
-const verifyAdmin = (req, res, next) => {
+export const verifyAdmin = (req, res, next) => {
   console.log("Cookies received in verifyAdmin:", req.cookies); // Debugging log
 
   try {
@@ -71,7 +71,7 @@ const verifyAdmin = (req, res, next) => {
   }
 };
 
-const verifyEmailToken = (req, res, next) => {
+export const verifyEmailToken = (req, res, next) => {
   const token = req.query.token; // Extract token from query parameters
 
   if (!token) {
@@ -91,6 +91,6 @@ const verifyEmailToken = (req, res, next) => {
   }
 };
 
-module.exports = verifyEmailToken;
+// module.exports = verifyEmailToken;
 
-export { verifyToken, verifyAdmin, verifySubscription, verifyEmailToken };
+// export { verifyToken, verifyAdmin, verifySubscription, verifyEmailToken };

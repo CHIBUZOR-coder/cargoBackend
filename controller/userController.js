@@ -9,6 +9,7 @@ import {
   generateToken,
   ResetPasswordToken,
 } from "../middlewares/generateToken.js";
+
 import { saveOtp } from "../config/otp.js";
 
 dotenv.config();
@@ -296,7 +297,7 @@ const sendVerificationEmail = async (email, verificationLink, message) => {
   }
 };
 
-exports.verifyEmail = async (req, res) => {
+export const verifyEmail = async (req, res) => {
   const { token, otp, email } = req.body;
 
   if (!token && (!otp || !email)) {

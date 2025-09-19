@@ -1,14 +1,11 @@
-
-
-import pool from "../db";
-
+import pool from "../db.js"
 
 /**
  * Save OTP in the database
  * @param {string} email - user email
  * @param {string} otp - generated OTP
  */
-async function saveOtp(email, otp) {
+export const saveOtp = async (email, otp) => {
   const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // expires in 10 minutes
   console.log(`Saving OTP for ${email}: ${otp}`);
 
@@ -18,14 +15,16 @@ async function saveOtp(email, otp) {
       .json({ success: false, message: "No otp provided!" });
   }
   // Upsert OTP for this email (update if exists, otherwise create)
-await pool.query("INSERT INTO otp (email, otp, expiresAt, createdAt)
-VALUES ($1, $2, $3, NOW())
-ON CONFLICT (email) 
-DO UPDATE SET 
-  otp = EXCLUDED.otp,
-  expiresAt = EXCLUDED.expiresAt,
-  createdAt = NOW();
-")
+  await pool.query(
+    `INSERT INTO otp (email, otp, expiresAt, createdAt)
+   VALUES ($1, $2, $3, NOW())
+   ON CONFLICT (email) 
+   DO UPDATE SET 
+     otp = EXCLUDED.otp,
+     expiresAt = EXCLUDED.expiresAt,
+     createdAt = NOW();`,
+    [email, otp, expiresAt]
+  );
 }
 
 /**
@@ -34,7 +33,7 @@ DO UPDATE SET
  * @param {string} otp - provided OTP
  * @returns {boolean} true if valid, false otherwise
  */
-async function verifyOtp(email, otp) {
+export const  verifyOtp = async (email, otp) => {
   const record = await prisma.otp.findUnique({
     where: { email },
   });
@@ -54,7 +53,8 @@ async function verifyOtp(email, otp) {
     await prisma.otp.delete({ where: { email } });
   }
 
+
   return isValid;
 }
 
-module.exports = { saveOtp, verifyOtp };
+// module.exports = { saveOtp, verifyOtp };
